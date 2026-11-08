@@ -46,6 +46,10 @@ h2{font-size:16px;margin:18px 0 8px}
 .status{margin:10px 0;font-weight:600}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .mut{color:var(--mut)}
+.meter{width:100%;height:10px;border-radius:999px;overflow:hidden;border:1px solid var(--line);background:rgba(0,0,0,.04)}
+.meter span{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#e7bf5d);border-radius:inherit;transition:width .2s ease}
+.winstat{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.winstat .num{font-size:26px}
 table{border-collapse:collapse;width:100%;font-size:13px}
 td,th{padding:3px 4px;text-align:right;border-bottom:1px solid var(--line)}
 th:first-child,td:first-child{text-align:left}
@@ -69,6 +73,26 @@ const $=s=>document.querySelector(s),SU=['♠','♥','♣','♦','★'],RN=r=>r<
 const NAMES=['Aria','Bram','Cleo','Dax','Esme','Finn'],LV=['Easy','Medium','Hard'];
 const isW=(c,w)=>c.j||c.r==w,cv=(c,w)=>c.j?50:c.r==w?20:c.r,cs=c=>c.j?'Joker':RN(c.r)+SU[c.s];
 let G=null,cfg={n:3,lvl:1},sel=-1,mk=null;
+const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
+
+function estimateWinChance(){
+  if(!G||!G.P||!G.P.length)return 0;
+  const me=G.P[0];
+  const others=G.P.slice(1);
+  const base=1/G.P.length;
+  const avgOther=others.length?others.reduce((s,p)=>s+p.tot,0)/others.length:0;
+  const scoreEdge=clamp((avgOther-me.tot)/90,-1,1);
+  const handValue=best(me.h,G.w);
+  const handEdge=clamp(1-handValue/110,0,1);
+  const roundBias=clamp((11-G.round+1)/11,0,1);
+  let p=base + scoreEdge*0.12 + handEdge*0.18 + roundBias*0.05;
+  if(G.phase==='end'){
+    const ranks=[...G.P].sort((a,b)=>a.tot-b.tot);
+    const rank=ranks.findIndex(p=>p===me);
+    p=rank===0?0.9:rank===1?0.35:0.08;
+  }
+  return clamp(p,0.05,0.9);
+}
 
 // minimum leftover points when arranging hand into books/runs
 function best(hand,w){
@@ -208,6 +232,8 @@ function view(){
   [...me.h,...G.disc].forEach(c=>{if(c.j)js++;else seen[c.r]++});
   const tops=G.disc[G.disc.length-1];
   const sc=`<table><tr><th>Round</th>${G.P.map(p=>`<th>${p.name}</th>`).join('')}</tr>${G.hist.map(h=>`<tr><td>${RN(h.w)}s</td>${h.sc.map(s=>`<td>${s}</td>`).join('')}</tr>`).join('')}<tr class="tot"><td>Total</td>${G.P.map(p=>`<td>${p.tot}</td>`).join('')}</tr></table>`;
+  const winChance=estimateWinChance();
+  const winPct=Math.round(winChance*100);
   A.innerHTML=`<div class="top"><h1>Five Crowns</h1><div>Round ${G.round} of 11 · <span class="wildtag">${RN(w)}s and Jokers are wild</span> · ${w} cards each</div></div>
   <div class="main"><div>
    <div class="opps">${G.P.slice(1).map((p,i)=>`<div class="opp${G.turn==i+1&&G.phase!='end'?' turn':''}"><b>${p.name}</b> <small>${LV[p.lvl]}</small><br><span class="num">${p.tot}</span> <small>pts · ${p.h.length} cards</small></div>`).join('')}</div>
@@ -220,6 +246,11 @@ function view(){
    <div class="row" style="margin-top:12px"><button class="btn alt" data-act="sortS">Sort by suit</button><button class="btn alt" data-act="sortR">Sort by rank</button><button class="btn" data-act="drop" ${G.phase=='disc'&&sel>=0?'':'disabled'}>Discard selected</button><span class="mut">${hint}</span></div>
    <p class="mut" style="font-size:13px">Drag cards to rearrange your hand. A green bar marks cards that fit into a book or run; dimmed cards are leftover points. Cards score face value (J 11, Q 12, K 13), wild-rank cards 20, Jokers 50. If your remaining cards all fit into books and runs after a discard, you go out automatically.</p>
   </div><aside><div class="pn"><h2 style="margin-top:0">Scores</h2>${sc}</div>
+   <div class="pn" style="margin-top:12px"><h2 style="margin-top:0">Win chance</h2>
+    <div class="winstat"><span class="num">${winPct}%</span><small class="mut">estimate</small></div>
+    <div class="meter" aria-label="Estimated chance to win"><span style="width:${winPct}%"></span></div>
+    <div class="mut" style="font-size:12px;margin-top:6px">Based on current score, round progress, and hand quality.</div>
+   </div>
    <div class="pn" style="margin-top:12px"><h2 style="margin-top:0">Unseen cards</h2><div class="mut" style="font-size:12px">Not in your hand or the discard pile</div>
     <div class="cnt">${[3,4,5,6,7,8,9,10,11,12,13].map(r=>`<div class="${r==w?'wl':''}${10-seen[r]==0?' z':''}">${RN(r)}<br><b>${10-seen[r]}</b></div>`).join('')}<div class="wl${6-js==0?' z':''}">Jk<br><b>${6-js}</b></div></div>
     <div class="log">${G.log.slice(-8).reverse().join('<br>')}</div></div></aside></div>
