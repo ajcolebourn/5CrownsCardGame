@@ -1,0 +1,236 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Five Crowns</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e8e5f1;--pn:#f7f5fc;--ink:#1d1733;--mut:#6b6485;--gold:#a87612;--line:#cfc9e0;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16112a;--pn:#211a3d;--ink:#efeaff;--mut:#9d95bd;--gold:#e8b84a;--line:#3a3160}}
+:root[data-theme="dark"]{--bg:#16112a;--pn:#211a3d;--ink:#efeaff;--mut:#9d95bd;--gold:#e8b84a;--line:#3a3160}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,sans-serif}
+h1,h2,.num,.card b{font-family:Fraunces,Georgia,serif}
+#app{max-width:1100px;margin:0 auto;padding:14px}
+button{font:inherit;color:inherit;cursor:pointer}
+.setup{max-width:460px;margin:8vh auto;background:var(--pn);padding:28px;border:1px solid var(--line);border-radius:14px}
+h1{font-size:44px;margin:0 0 6px;font-weight:800;letter-spacing:-.02em}
+h2{font-size:16px;margin:18px 0 8px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{flex:1;min-width:44px;padding:10px;background:none;border:1px solid var(--line);border-radius:8px}
+.seg button.on{background:var(--gold);color:#1d1733;border-color:var(--gold);font-weight:700}
+.go,.btn{background:var(--gold);color:#1d1733;border:0;border-radius:8px;padding:11px 18px;font-weight:700}
+.go{margin-top:22px;width:100%}
+.btn:disabled{opacity:.35;cursor:default}
+.top{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+.top h1{font-size:26px;margin:0}
+.wildtag{color:var(--gold);font-weight:700}
+.main{display:grid;grid-template-columns:1fr 300px;gap:14px;margin-top:10px}
+@media(max-width:820px){.main{grid-template-columns:1fr}}
+.pn{background:var(--pn);border:1px solid var(--line);border-radius:12px;padding:12px}
+.opps{display:flex;gap:8px;flex-wrap:wrap}
+.opp{flex:1;min-width:110px;padding:8px 10px;border:1px solid var(--line);border-radius:10px}
+.opp.turn{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold)}
+.opp small{color:var(--mut)}
+.num{font-size:22px;font-weight:800}
+.table{display:flex;gap:22px;justify-content:center;align-items:center;margin:16px 0;flex-wrap:wrap}
+.pile{text-align:center}
+.pile small{display:block;color:var(--mut);margin-top:4px}
+.back{width:64px;height:90px;border-radius:8px;border:2px solid var(--gold);background:repeating-linear-gradient(45deg,#2a2150,#2a2150 6px,#3a2f6e 6px,#3a2f6e 12px);color:#f3d78a;font-family:Fraunces,Georgia,serif;font-size:22px;font-weight:800}
+.hand{display:flex;gap:6px;flex-wrap:wrap;min-height:92px}
+.card{width:58px;height:84px;background:#fbf6e6;border:2px solid #d8cfb4;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;color:#1d1733;position:relative}
+.card b{font-size:26px;line-height:1}
+.card i{font-style:normal;font-size:22px;line-height:1.1}
+.c0{color:#1d1733}.c1{color:#c62f3f}.c2{color:#1f7a4d}.c3{color:#2358b8}.c4{color:#c27d0a}.cj{color:#7a2fa8}
+.card.w{border-color:#c9921a;box-shadow:inset 0 0 0 2px #f3d78a}
+.card.w::after{content:"WILD";position:absolute;bottom:2px;font:700 8px system-ui;color:#a87612}
+.card.sel{transform:translateY(-12px);border-color:var(--ink)}
+.card.ghost{opacity:.4}
+.status{margin:10px 0;font-weight:600}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.mut{color:var(--mut)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+td,th{padding:3px 4px;text-align:right;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+tr.tot td{font-weight:800;border-top:2px solid var(--gold)}
+.cnt{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:6px 0}
+.cnt div{border:1px solid var(--line);border-radius:6px;text-align:center;padding:2px 0;font-size:12px}
+.cnt div.wl{border-color:var(--gold);color:var(--gold);font-weight:700}
+.cnt div.z{opacity:.35}
+.log{font-size:12.5px;color:var(--mut);max-height:110px;overflow:auto}
+.modal{position:fixed;inset:0;background:rgba(10,6,25,.7);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal .pn{max-width:420px;width:100%;max-height:90vh;overflow:auto}
+.hand .card{touch-action:none;user-select:none;cursor:grab}
+.card.ml::before{content:"";position:absolute;left:6px;right:6px;top:-7px;height:4px;border-radius:2px;background:#1f9d5c}
+.card.dw{opacity:.72}
+.btn.alt{background:none;border:1px solid var(--line);color:var(--ink);font-weight:500}
+@media(prefers-reduced-motion:no-preference){.card{transition:transform .12s}}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+</style></head><body><div id="app"></div>
+<script>
+const $=s=>document.querySelector(s),SU=['♠','♥','♣','♦','★'],RN=r=>r<11?r:'JQK'[r-11];
+const NAMES=['Aria','Bram','Cleo','Dax','Esme','Finn'],LV=['Easy','Medium','Hard'];
+const isW=(c,w)=>c.j||c.r==w,cv=(c,w)=>c.j?50:c.r==w?20:c.r,cs=c=>c.j?'Joker':RN(c.r)+SU[c.s];
+let G=null,cfg={n:3,lvl:1},sel=-1,mk=null;
+
+// minimum leftover points when arranging hand into books/runs
+function best(hand,w){
+  let W=0,cnt=Array.from({length:5},()=>Array(14).fill(0));
+  for(const c of hand){if(isW(c,w))W++;else cnt[c.s][c.r]++}
+  const memo=new Map();
+  function f(W,has){
+    let s=-1,r=0;
+    o:for(let i=0;i<5;i++)for(let j=3;j<14;j++)if(cnt[i][j]){s=i;r=j;break o}
+    if(s<0)return(has||W>=3)?0:W*20;
+    const k=cnt.join('|')+W+has;if(memo.has(k))return memo.get(k);
+    cnt[s][r]--;let b=r+f(W,has);
+    const sv=[];for(let i=0;i<5;i++)if(cnt[i][r])sv.push(i);
+    const rec=(x,tk)=>{
+      if(x==sv.length){const need=Math.max(0,2-tk);if(need<=W)b=Math.min(b,f(W-need,1));return}
+      for(let t=0;t<=cnt[sv[x]][r];t++){cnt[sv[x]][r]-=t;rec(x+1,tk+t);cnt[sv[x]][r]+=t}
+    };rec(0,0);
+    let u=0;const tk=[];
+    for(let e=r;e<=13;e++){
+      if(e>r){if(cnt[s][e]>0){cnt[s][e]--;tk.push(e)}else u++}
+      if(u>W)break;
+      const x=Math.max(0,3-(e-r+1));
+      if(u+x<=W)b=Math.min(b,f(W-u-x,1));
+    }
+    tk.forEach(e=>cnt[s][e]++);cnt[s][r]++;
+    memo.set(k,b);return b;
+  }
+  return f(W,false);
+}
+function bestDiscard(h,w,lvl){
+  let b=null;
+  h.forEach((c,i)=>{
+    let sc=best(h.filter((_,j)=>j!==i),w),v=cv(c,w);
+    const adj=sc+(lvl==2&&G.taken.slice(-8).includes(c.r)?.6:0);
+    if(!b||adj<b.adj||(adj==b.adj&&v>b.v))b={i,sc,adj,v};
+  });
+  return b;
+}
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const srt=h=>h.sort((a,b)=>(a.j?99:a.s*20+a.r)-(b.j?99:b.s*20+b.r));
+function newGame(){
+  G={P:[{name:'You',tot:0,h:[]}],round:1,dealer:0,hist:[]};
+  for(let i=0;i<cfg.n;i++)G.P.push({name:NAMES[i],ai:1,lvl:cfg.lvl,tot:0,h:[]});
+  startRound();
+}
+function startRound(){
+  const d=[];for(let k=0;k<2;k++){for(let s=0;s<5;s++)for(let r=3;r<=13;r++)d.push({s,r});for(let j=0;j<3;j++)d.push({j:1,s:5,r:0})}
+  G.deck=shuf(d);G.w=G.round+2;G.taken=[];G.log=[];G.out=null;sel=-1;
+  G.P.forEach(p=>{p.h=srt(G.deck.splice(0,G.w))});
+  G.disc=[G.deck.pop()];G.turn=(G.dealer+1)%G.P.length;G.phase='draw';
+  loop();
+}
+function drawCard(){
+  if(!G.deck.length){const t=G.disc.pop();G.deck=shuf(G.disc);G.disc=[t];G.log.push('Draw pile reshuffled from the discards.')}
+  return G.deck.pop();
+}
+function loop(){view();const p=G.P[G.turn];if(p.ai){G.phase='ai';setTimeout(aiTurn,1000)}else G.phase='draw';view()}
+function aiTurn(){
+  const p=G.P[G.turn],w=G.w,top=G.disc[G.disc.length-1],cur=best(p.h,w);
+  let take=bestDiscard([...p.h,top],w,p.lvl).sc<cur;
+  if(p.lvl==0&&Math.random()<.5)take=false;
+  if(p.lvl==2&&isW(top,w))take=true;
+  let c;
+  if(take){c=G.disc.pop();G.taken.push(c.r);G.log.push(`${p.name} took ${cs(c)} from the discard.`)}
+  else{c=drawCard();G.log.push(`${p.name} drew from the deck.`)}
+  p.h.push(c);
+  let d=bestDiscard(p.h,w,p.lvl);
+  if(p.lvl==0&&Math.random()<.3){
+    let m=-1,mi=0;p.h.forEach((x,i)=>{if(!isW(x,w)&&x.r>m){m=x.r;mi=i}});d={i:mi};
+  }
+  const out=p.h.splice(d.i,1)[0];G.disc.push(out);G.log.push(`${p.name} discarded ${cs(out)}.`);
+  endTurn(p);
+}
+function endTurn(p){
+  if(G.out==null&&best(p.h,G.w)==0){G.out=G.turn;G.log.push(`${p.name==='You'?'You':p.name} went out! Everyone else gets one last turn.`)}
+  G.turn=(G.turn+1)%G.P.length;
+  if(G.out!=null&&G.turn==G.out)return endRound();
+  loop();
+}
+function endRound(){
+  const sc=G.P.map(p=>best(p.h,G.w));
+  sc.forEach((s,i)=>G.P[i].tot+=s);
+  G.hist.push({w:G.w,sc});G.phase='end';view();
+}
+function act(e){
+  if(window.noClick)return;
+  const t=e.target.closest('[data-act]');if(!t)return;
+  const a=t.dataset.act,v=+t.dataset.v;
+  if(a=='n'){cfg.n=v}else if(a=='l'){cfg.lvl=v}else if(a=='start'){return newGame()}
+  else if(a=='again'){G=null}
+  else if(a=='next'){G.round++;G.dealer=(G.dealer+1)%G.P.length;return startRound()}
+  else if(G&&G.turn==0&&G.phase=='draw'&&(a=='deck'||a=='disc')){
+    const p=G.P[0];let c;
+    if(a=='disc'){c=G.disc.pop();G.log.push(`You took ${cs(c)} from the discard.`)}
+    else{c=drawCard();G.log.push(`You drew ${cs(c)}.`)}
+    p.h.push(c);G.phase='disc';sel=-1;
+  }
+  else if(a=='sortS'){srt(G.P[0].h);sel=-1}
+  else if(a=='sortR'){G.P[0].h.sort((a,b)=>(a.j?99:a.r)-(b.j?99:b.r)||a.s-b.s);sel=-1}
+  else if(a=='pick'&&G.phase=='disc'){sel=sel==v?-1:v}
+  else if(a=='drop'&&G.phase=='disc'&&sel>=0){
+    const c=G.P[0].h.splice(sel,1)[0];G.disc.push(c);G.log.push(`You discarded ${cs(c)}.`);sel=-1;
+    return endTurn(G.P[0]);
+  }
+  view();
+}
+document.addEventListener('click',act);
+let dg=null;
+document.addEventListener('pointerdown',e=>{const c=e.target.closest('.hand .card');if(!c||!G||G.phase=='end')return;dg={el:c,i:+c.dataset.v,x:e.clientX,y:e.clientY,on:0}});
+document.addEventListener('pointermove',e=>{if(!dg)return;const dx=e.clientX-dg.x,dy=e.clientY-dg.y;if(!dg.on&&Math.hypot(dx,dy)>8){dg.on=1;dg.el.style.zIndex=9;dg.el.style.transition='none'}if(dg.on){dg.el.style.transform=`translate(${dx}px,${dy}px)`;e.preventDefault()}});
+document.addEventListener('pointerup',e=>{
+  if(!dg)return;const d=dg;dg=null;if(!d.on)return;
+  window.noClick=1;setTimeout(()=>window.noClick=0,60);
+  d.el.style.pointerEvents='none';const t=document.elementFromPoint(e.clientX,e.clientY);d.el.style.pointerEvents='';
+  const o=t&&t.closest('.hand .card'),h=G.P[0].h;let j=o?+o.dataset.v:-1;
+  if(j<0){const r=$('.hand').getBoundingClientRect();if(e.clientY>=r.top-20&&e.clientY<=r.bottom+20)j=h.length-1}
+  if(j>=0&&j!=d.i){const c=h.splice(d.i,1)[0];h.splice(j,0,c)}
+  sel=-1;view();
+});
+document.addEventListener('pointercancel',()=>{if(dg&&dg.on){dg=null;view()}else dg=null});
+
+const cardHTML=(c,i,w)=>`<button class="card c${c.j?'j':c.s}${isW(c,w)?' w':''}${i==sel?' sel':''}${mk&&mk[i]?' ml':' dw'}" data-act="pick" data-v="${i}" aria-label="${cs(c)}"><b>${c.j?'★':RN(c.r)}</b><i>${c.j?'':SU[c.s]}</i></button>`;
+function view(){
+  const A=$('#app');
+  if(!G){
+    A.innerHTML=`<section class="setup"><h1>Five Crowns</h1><p class="mut">Arrange every card into books (3+ of a rank) or runs (3+ in a suit, in order). Go out first; the lowest total after 11 rounds wins.</p>
+    <h2>Opponents</h2><div class="seg">${[1,2,3,4,5,6].map(n=>`<button data-act="n" data-v="${n}" class="${cfg.n==n?'on':''}">${n}</button>`).join('')}</div>
+    <h2>Opponent strength</h2><div class="seg">${LV.map((t,i)=>`<button data-act="l" data-v="${i}" class="${cfg.lvl==i?'on':''}">${t}</button>`).join('')}</div>
+    <button class="go" data-act="start">Deal the first round</button></section>`;return;
+  }
+  if(dg&&dg.on)return;
+  const w=G.w,me=G.P[0],mine=G.turn==0&&G.phase!='end';
+  const S0=best(me.h,w);mk=me.h.map((c,i)=>S0==0||best(me.h.filter((_,j)=>j!==i),w)>S0-cv(c,w));
+  const st=G.phase=='end'?'Round over.':G.phase=='ai'?`${G.P[G.turn].name} is playing…`:G.phase=='draw'?'Your turn: draw from the deck or the discard pile.':'Select a card, then discard it.';
+  const hint=G.phase=='disc'?`Best after discarding: ${bestDiscard(me.h,w,0).sc} pts`:`Your hand: ${best(me.h,w)} pts if the round ended now`;
+  const seen=Array(14).fill(0);let js=0;
+  [...me.h,...G.disc].forEach(c=>{if(c.j)js++;else seen[c.r]++});
+  const tops=G.disc[G.disc.length-1];
+  const sc=`<table><tr><th>Round</th>${G.P.map(p=>`<th>${p.name}</th>`).join('')}</tr>${G.hist.map(h=>`<tr><td>${RN(h.w)}s</td>${h.sc.map(s=>`<td>${s}</td>`).join('')}</tr>`).join('')}<tr class="tot"><td>Total</td>${G.P.map(p=>`<td>${p.tot}</td>`).join('')}</tr></table>`;
+  A.innerHTML=`<div class="top"><h1>Five Crowns</h1><div>Round ${G.round} of 11 · <span class="wildtag">${RN(w)}s and Jokers are wild</span> · ${w} cards each</div></div>
+  <div class="main"><div>
+   <div class="opps">${G.P.slice(1).map((p,i)=>`<div class="opp${G.turn==i+1&&G.phase!='end'?' turn':''}"><b>${p.name}</b> <small>${LV[p.lvl]}</small><br><span class="num">${p.tot}</span> <small>pts · ${p.h.length} cards</small></div>`).join('')}</div>
+   <div class="pn table" style="margin-top:12px">
+    <div class="pile"><button class="back" data-act="deck" ${mine&&G.phase=='draw'?'':'disabled'} aria-label="Draw from deck">5♛</button><small>Draw pile: ${G.deck.length}</small></div>
+    <div class="pile">${tops?`<button class="card c${tops.j?'j':tops.s}${isW(tops,w)?' w':''}" data-act="disc" ${mine&&G.phase=='draw'?'':'disabled'}><b>${tops.j?'★':RN(tops.r)}</b><i>${tops.j?'':SU[tops.s]}</i></button>`:''}<small>Discards: ${G.disc.length}</small></div>
+   </div>
+   <div class="status">${st}</div>
+   <div class="hand">${me.h.map((c,i)=>cardHTML(c,i,w)).join('')}</div>
+   <div class="row" style="margin-top:12px"><button class="btn alt" data-act="sortS">Sort by suit</button><button class="btn alt" data-act="sortR">Sort by rank</button><button class="btn" data-act="drop" ${G.phase=='disc'&&sel>=0?'':'disabled'}>Discard selected</button><span class="mut">${hint}</span></div>
+   <p class="mut" style="font-size:13px">Drag cards to rearrange your hand. A green bar marks cards that fit into a book or run; dimmed cards are leftover points. Cards score face value (J 11, Q 12, K 13), wild-rank cards 20, Jokers 50. If your remaining cards all fit into books and runs after a discard, you go out automatically.</p>
+  </div><aside><div class="pn"><h2 style="margin-top:0">Scores</h2>${sc}</div>
+   <div class="pn" style="margin-top:12px"><h2 style="margin-top:0">Unseen cards</h2><div class="mut" style="font-size:12px">Not in your hand or the discard pile</div>
+    <div class="cnt">${[3,4,5,6,7,8,9,10,11,12,13].map(r=>`<div class="${r==w?'wl':''}${10-seen[r]==0?' z':''}">${RN(r)}<br><b>${10-seen[r]}</b></div>`).join('')}<div class="wl${6-js==0?' z':''}">Jk<br><b>${6-js}</b></div></div>
+    <div class="log">${G.log.slice(-8).reverse().join('<br>')}</div></div></aside></div>
+  ${G.phase=='end'?modal():''}`;
+}
+function modal(){
+  const h=G.hist[G.hist.length-1],last=G.round==11,P=G.P;
+  const order=[...P].sort((a,b)=>a.tot-b.tot);
+  return `<div class="modal"><div class="pn"><h1 style="font-size:28px">${last?(order[0].name==='You'?'You win!':order[0].name+' wins'):'Round '+G.round+' scores'}</h1>
+  ${last?order.map(p=>`<div class="row"><span class="num">${p.tot}</span><span>${p.name}</span></div>`).join(''):P.map((p,i)=>`<div class="row"><span class="num">${h.sc[i]}</span><span>${p.name} <small class="mut">(${p.tot} total)</small></span></div><div class="mut" style="font-size:12px">${p.h.map(cs).join(' ')}</div>`).join('')}
+  <button class="go" data-act="${last?'again':'next'}">${last?'New game':'Start round '+(G.round+1)}</button></div></div>`;
+}
+view();
+</script></body></html>
